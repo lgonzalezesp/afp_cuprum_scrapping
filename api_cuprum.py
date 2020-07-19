@@ -76,4 +76,4 @@ class Cuprum(Resource):
 api.add_resource(Cuprum, '/cuprum/<rut>/<password>')  # Route_1
 
 if __name__ == '__main__':
-    app.run(port='5002')
+    app.run(port=os.environ["PORT"])
