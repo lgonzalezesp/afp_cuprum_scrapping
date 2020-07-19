@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, make_response
+from flask import Flask, make_response
 from flask_restful import Resource, Api
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
@@ -21,9 +21,12 @@ class Cuprum(Resource):
 
         timeout = float(os.environ["TIMEOUT"])
 
-        pathDriver = os.environ["PATH_DRIVER"]
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-gpu')
+        driver = webdriver.Chrome(chrome_options=chrome_options)
 
-        driver = webdriver.Chrome(pathDriver)
         driver.get('https://www.cuprum.cl/wwwCuprum/Login.aspx')
         driver.find_element_by_id('_ctl0_MainContent_rut').send_keys(rut)
         driver.find_element_by_id('_ctl0_MainContent_password').send_keys(password)
@@ -76,4 +79,4 @@ class Cuprum(Resource):
 api.add_resource(Cuprum, '/cuprum/<rut>/<password>')  # Route_1
 
 if __name__ == '__main__':
-    app.run(port=os.environ["PORT"])
+    app.run(debug=True, host='0.0.0.0')

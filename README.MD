@@ -13,9 +13,6 @@ API que obtiene el saldo total de la cuenta AFP Cuprum, realizada con Python Web
 | PATH_DRIVER   | Direccion del driver de selenium, se puede descargar de [Chromedriver](https://chromedriver.chromium.org/)       |./chromedriver_mac|
 | PORT   | Puerdo de la aplicación |5009|
 
-## Ejecutar de forma local
-
-    python3 api_cuprum.py
 
 ## API Request
 
@@ -56,8 +53,8 @@ API que obtiene el saldo total de la cuenta AFP Cuprum, realizada con Python Web
 
 Ejecutar la API en python
 
-    python3 api_cuprum.py
-    
+    docker build -t api-cuprum:latest .
+    docker run -d -e PORT=5000 -e TIMEOUT=30  -p 5000:5000 api-cuprum:latest
 Ejecutar la API
 
-    http localhost:5009/cuprum/123123123-2/123123123
+    http localhost:5000/cuprum/123123123-2/123123123
