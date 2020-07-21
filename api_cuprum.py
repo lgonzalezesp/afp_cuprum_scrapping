@@ -1,17 +1,18 @@
-from flask import Flask, jsonify, make_response
-from flask_restful import Resource, Api
-from selenium import webdriver
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
-import requests
 import json
 import os
 
+import requests
+from flask import Flask, make_response
+from flask_restful import Resource, Api
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
 from AFP import AFP
 from Account import Account
-
+from Kind import Kind
 app = Flask(__name__)
 api = Api(app)
 
@@ -37,17 +38,25 @@ class Cuprum(Resource):
         except TimeoutException:
             return make_response("Timed out waiting for page to load", 404)
 
-        json_data = self.getInfoAccount(rut, jwt)
+        account = self.getInfoAccount(rut, jwt)
 
-        cuentas = json_data['Cuentas']
-        total = json_data['SaldoTotal']
+        kindsTmp = self.getSaldoTotalPorCuentaBff(rut, jwt)
+
+        cuentas = account['Cuentas']
+        total = account['SaldoTotal']
 
         accounts = []
 
         for cuenta in cuentas:
+            kinds = []
+
+            output_dict = [x for x in kindsTmp if x['nombre'] == cuenta['Cuentas']]
+
+            if len(output_dict) > 0:
+                kinds = self.getKinds(output_dict[0]['fondos'])
             account = Account(cuenta['Cuentas'],
                               cuenta['Price'],
-                              cuenta['Fondos'][0]['Nombre'])
+                              kinds)
             accounts.append(account.__dict__)
 
         afp = AFP(accounts, total)
@@ -56,7 +65,23 @@ class Cuprum(Resource):
 
         return afp.__dict__
 
+    def getKinds(self, output_dict, ):
+        kinds = []
+
+        for kind in output_dict:
+            name = kind['nombre']
+            price = kind['saldo']
+
+            kinds.append(Kind(name, price).__dict__)
+        return kinds
+
     def closeDriver(self, driver):
+
+        cookies_list = driver.get_cookies()
+        cookies_dict = {}
+        for cookie in cookies_list:
+            cookies_dict[cookie['name']] = cookie['value']
+
         driver.stop_client()
         driver.close()
 
@@ -67,9 +92,21 @@ class Cuprum(Resource):
         headers = {
             'Authorization': jwt,
             'cache-control': "no-cache",
-            'Postman-Token': "2485594c-8f02-41c5-8ef9-2c80f5f87f09"
         }
-        response = requests.request("GET", url, headers=headers, params=querystring)
+        response = requests.request("GET", url, headers=headers, params=querystring, timeout=200)
+
+        return json.loads(response.text)
+
+    def getSaldoTotalPorCuentaBff(self, rut, jwt):
+
+        url = "https://www.cuprum.cl/SaldoTotalPorCuentaBFF/bff/DetalleDeCuenta/ObtenerDatosCuenta"
+        querystring = {"rut": rut, "cuenta": "CCO"}
+        headers = {
+            'Authorization': jwt,
+            'cache-control': "no-cache",
+        }
+        response = requests.request("GET", url, headers=headers, params=querystring, timeout=200)
+
         return json.loads(response.text)
 
 

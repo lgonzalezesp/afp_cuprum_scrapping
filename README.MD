@@ -10,8 +10,6 @@ API que obtiene el saldo total de la cuenta AFP Cuprum, realizada con Python Web
 | Variable      | Description | Ejemplo|
 | ----------- | ----------- |----------|
 | TIMEOUT      | Tiempo de espera en ejecutar la API interna de AFP Cuprum| 30 |
-| PATH_DRIVER   | Direccion del driver de selenium, se puede descargar de [Chromedriver](https://chromedriver.chromium.org/)       |./chromedriver_mac|
-| PORT   | Puerdo de la aplicación |5009|
 
 ## Ejecutar de forma local
 
